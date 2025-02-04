@@ -18,9 +18,8 @@
         "cinefabric.mixins.json"
     ],
     "depends": {
-        "fabricloader": ">=${loader_version}",
-        "fabric-language-kotlin": ">=${kotlin_loader_version}",
+        "fabric-language-kotlin": "*",
         "fabric": "*",
-        "minecraft": "${minecraft_version}"
+        "minecraft": ">=${minecraft_version}"
     }
 }
