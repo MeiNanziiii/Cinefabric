@@ -22,6 +22,7 @@
     "mixins": [
         "cinefabric.mixins.json"
     ],
+    "accessWidener": "cinefabric.accesswidener",
     "depends": {
         "fabric-language-kotlin": "*",
         "fabric": "*",

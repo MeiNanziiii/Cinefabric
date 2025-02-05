@@ -7,6 +7,8 @@ plugins {
 
 loom {
     serverOnlyMinecraftJar()
+
+    accessWidenerPath = file("src/main/resources/cinefabric.accesswidener")
 }
 
 val modVersion: String by project
@@ -18,7 +20,7 @@ version = "$modVersion+${libs.versions.minecraft.get()}"
 group = mavenGroup
 
 repositories {
-
+    maven("https://maven.nucleoid.xyz/")
 }
 
 dependencies {
@@ -28,6 +30,8 @@ dependencies {
     modImplementation(libs.fabric.loader)
     modImplementation(libs.fabric.kotlin)
     modImplementation(libs.fabric.api)
+
+    implementAndInclude(libs.sgui)
 
     implementAndInclude(libs.permissions)
 }

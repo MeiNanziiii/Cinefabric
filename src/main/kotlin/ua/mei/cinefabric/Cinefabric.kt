@@ -1,6 +1,7 @@
 package ua.mei.cinefabric
 
 import net.fabricmc.api.ModInitializer
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
 import net.fabricmc.loader.api.FabricLoader
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
@@ -13,5 +14,7 @@ object Cinefabric : ModInitializer {
         if (!cutscenesDir.exists()) {
             cutscenesDir.createDirectories()
         }
+
+        CommandRegistrationCallback.EVENT.register(CinefabricCommands)
     }
 }
