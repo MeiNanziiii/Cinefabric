@@ -228,12 +228,23 @@ class CutsceneGui(player: ServerPlayerEntity) : HotbarGui(player) {
                             prev.x + (it.toFloat() / (keyframe.duration - 1)) * (keyframe.x - prev.x),
                             prev.y + (it.toFloat() / (keyframe.duration - 1)) * (keyframe.y - prev.y),
                             prev.z + (it.toFloat() / (keyframe.duration - 1)) * (keyframe.z - prev.z),
-                            prev.yaw + (it.toFloat() / (keyframe.duration - 1)) * (keyframe.yaw - prev.yaw),
+                            interpolateAngle(prev.yaw, keyframe.yaw, keyframe.duration)[it],
                             prev.pitch + (it.toFloat() / (keyframe.duration - 1)) * (keyframe.pitch - prev.pitch)
                         )
                     )
                 }
             }
+        }
+    }
+
+    fun interpolateAngle(start: Float, end: Float, steps: Int): List<Float> {
+        val delta = end - start
+        return if (delta > 180) {
+            List(steps) { (start + it * (delta - 360) / (steps - 1)).let { if (it < -180) it + 360 else it } }
+        } else if (delta < -180) {
+            List(steps) { (start + it * (delta + 360) / (steps - 1)).let { if (it > 180) it - 360 else it } }
+        } else {
+            List(steps) { start + it * delta / (steps - 1) }
         }
     }
 
