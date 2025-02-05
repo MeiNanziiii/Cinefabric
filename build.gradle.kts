@@ -28,6 +28,8 @@ dependencies {
     modImplementation(libs.fabric.loader)
     modImplementation(libs.fabric.kotlin)
     modImplementation(libs.fabric.api)
+
+    implementAndInclude(libs.permissions)
 }
 
 java {
@@ -59,4 +61,9 @@ tasks {
     jar {
         from("LICENSE")
     }
+}
+
+fun DependencyHandlerScope.implementAndInclude(dep: Any) {
+    modImplementation(dep)
+    include(dep)
 }

@@ -7,6 +7,8 @@ fabric-loader="0.16.10"
 fabric-kotlin="1.13.1+kotlin.2.1.10"
 fabric-api="0.115.1+1.21.4"
 
+permissions="0.3.3"
+
 [libraries]
 
 minecraft = { module = "net.minecraft:minecraft", version.ref = "minecraft" }
@@ -15,3 +17,5 @@ yarn = { module = "net.fabricmc:yarn", version.ref = "yarn" }
 fabric-loader = { module = "net.fabricmc:fabric-loader", version.ref = "fabric-loader" }
 fabric-api = { module = "net.fabricmc.fabric-api:fabric-api", version.ref = "fabric-api" }
 fabric-kotlin = { module = "net.fabricmc:fabric-language-kotlin", version.ref = "fabric-kotlin" }
+
+permissions = { module = "me.lucko:fabric-permissions-api", version.ref = "permissions" }
