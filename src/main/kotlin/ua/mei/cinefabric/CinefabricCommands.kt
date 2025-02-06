@@ -8,7 +8,8 @@ import net.minecraft.server.command.CommandManager.RegistrationEnvironment
 import net.minecraft.server.command.CommandManager.literal
 import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.server.network.ServerPlayerEntity
-import ua.mei.cinefabric.gui.CutsceneGui
+import ua.mei.cinefabric.gui.EditorGui
+import ua.mei.cinefabric.scene.Cutscene
 
 object CinefabricCommands : CommandRegistrationCallback {
     override fun register(dispatcher: CommandDispatcher<ServerCommandSource>, access: CommandRegistryAccess, environment: RegistrationEnvironment) {
@@ -21,7 +22,7 @@ object CinefabricCommands : CommandRegistrationCallback {
                         .executes { ctx ->
                             val player: ServerPlayerEntity = ctx.source.playerOrThrow
 
-                            CutsceneGui(player).open()
+                            EditorGui(player, Cutscene()).open()
 
                             1
                         }

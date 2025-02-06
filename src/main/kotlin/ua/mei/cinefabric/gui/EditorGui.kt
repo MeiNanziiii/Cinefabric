@@ -8,32 +8,24 @@ import net.minecraft.block.Blocks
 import net.minecraft.entity.EntityType
 import net.minecraft.entity.data.DataTracker
 import net.minecraft.entity.decoration.DisplayEntity
-import net.minecraft.item.ItemStack
 import net.minecraft.item.Items
 import net.minecraft.network.packet.s2c.play.BundleS2CPacket
 import net.minecraft.network.packet.s2c.play.EntitiesDestroyS2CPacket
 import net.minecraft.network.packet.s2c.play.EntitySpawnS2CPacket
 import net.minecraft.network.packet.s2c.play.EntityTrackerUpdateS2CPacket
 import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.server.world.ServerWorld
 import net.minecraft.util.math.Vec3d
-import net.minecraft.world.GameMode
 import org.joml.Vector3d
 import org.joml.Vector3f
-import ua.mei.cinefabric.scene.Frame
-import ua.mei.cinefabric.scene.Keyframe
+import ua.mei.cinefabric.cast.CinefabricPlayer
+import ua.mei.cinefabric.scene.Cutscene
 import ua.mei.cinefabric.util.copy
 import java.util.*
 import kotlin.math.atan2
 import kotlin.math.sqrt
 
-class CutsceneGui(player: ServerPlayerEntity) : HotbarGui(player) {
-    private val keyframes: MutableList<Keyframe> = mutableListOf()
-    private val frames: MutableList<Frame> = mutableListOf()
+class EditorGui(player: ServerPlayerEntity, val cutscene: Cutscene) : HotbarGui(player) {
     private val activeIds: MutableList<Int> = mutableListOf()
-
-    private var playing: Boolean = false
-    private var ticks: Int = 0
 
     init {
         setSlot(
@@ -48,7 +40,7 @@ class CutsceneGui(player: ServerPlayerEntity) : HotbarGui(player) {
             4,
             GuiElementBuilder.from(Items.EMERALD.defaultStack)
                 .setCallback { ->
-                    keyframes += Keyframe(
+                    cutscene.keyframes += Cutscene.Keyframe(
                         player.x,
                         player.y,
                         player.z,
@@ -65,41 +57,18 @@ class CutsceneGui(player: ServerPlayerEntity) : HotbarGui(player) {
             8,
             GuiElementBuilder.from(Items.EMERALD.defaultStack)
                 .setCallback { ->
-                    if (keyframes.size > 1) {
-                        playing = true
+                    if (cutscene.keyframes.isNotEmpty()) {
+                        close()
                         player.networkHandler.sendPacket(EntitiesDestroyS2CPacket(IntArrayList.wrap(activeIds.toIntArray())))
                         activeIds.clear()
+
+                        (player as CinefabricPlayer).playScene(cutscene) {
+                            render()
+                            open()
+                        }
                     }
                 }
         )
-    }
-
-    override fun onTick() {
-        super.onTick()
-        if (playing) {
-            val frame: Frame = frames[ticks]
-
-            player.teleport(
-                player.world as ServerWorld,
-                frame.x,
-                frame.y,
-                frame.z,
-                setOf(),
-                frame.yaw,
-                frame.pitch,
-                false
-            )
-            player.changeGameMode(GameMode.SPECTATOR)
-
-            ticks++
-
-            if (ticks >= frames.size) {
-                playing = false
-                ticks = 0
-                player.changeGameMode(GameMode.CREATIVE)
-                render()
-            }
-        }
     }
 
     fun render() {
@@ -108,7 +77,7 @@ class CutsceneGui(player: ServerPlayerEntity) : HotbarGui(player) {
 
         var entityId: Int = -1
 
-        keyframes.forEach {
+        cutscene.keyframes.forEach {
             val id: Int = --entityId
 
             player.networkHandler.sendPacket(
@@ -122,7 +91,7 @@ class CutsceneGui(player: ServerPlayerEntity) : HotbarGui(player) {
                             it.z,
                             it.pitch,
                             it.yaw,
-                            EntityType.ITEM_DISPLAY,
+                            EntityType.BLOCK_DISPLAY,
                             0,
                             Vec3d.ZERO,
                             0.0
@@ -130,10 +99,15 @@ class CutsceneGui(player: ServerPlayerEntity) : HotbarGui(player) {
                         EntityTrackerUpdateS2CPacket(
                             id,
                             listOf(
-                                DataTracker.SerializedEntry<ItemStack>(
-                                    DisplayEntity.ItemDisplayEntity.ITEM.id,
-                                    DisplayEntity.ItemDisplayEntity.ITEM.dataType,
-                                    Items.FIREWORK_STAR.defaultStack
+                                DataTracker.SerializedEntry<BlockState>(
+                                    DisplayEntity.BlockDisplayEntity.BLOCK_STATE.id,
+                                    DisplayEntity.BlockDisplayEntity.BLOCK_STATE.dataType,
+                                    Blocks.OBSERVER.defaultState
+                                ),
+                                DataTracker.SerializedEntry<Vector3f>(
+                                    DisplayEntity.TRANSLATION.id,
+                                    DisplayEntity.TRANSLATION.dataType,
+                                    Vector3f(-0.5f)
                                 )
                             )
                         )
@@ -143,12 +117,12 @@ class CutsceneGui(player: ServerPlayerEntity) : HotbarGui(player) {
 
             activeIds += id
         }
-        if (keyframes.size > 1) {
-            (1..<keyframes.size).forEach {
+        if (cutscene.keyframes.size > 1) {
+            (1..<cutscene.keyframes.size).forEach {
                 val id: Int = --entityId
 
-                val previousKeyframe: Keyframe = keyframes[it - 1]
-                val currentKeyframe: Keyframe = keyframes[it]
+                val previousKeyframe: Cutscene.Keyframe = cutscene.keyframes[it - 1]
+                val currentKeyframe: Cutscene.Keyframe = cutscene.keyframes[it]
 
                 val previousVector: Vector3d = Vector3d(previousKeyframe.x, previousKeyframe.y, previousKeyframe.z)
                 val currentVector: Vector3d = Vector3d(currentKeyframe.x, currentKeyframe.y, currentKeyframe.z)
@@ -203,48 +177,6 @@ class CutsceneGui(player: ServerPlayerEntity) : HotbarGui(player) {
 
                 activeIds += id
             }
-        }
-
-        renderFrames()
-    }
-
-    fun renderFrames() {
-        frames.clear()
-        keyframes.forEachIndexed { index, keyframe ->
-            if (index == 0) {
-                frames += Frame(
-                    keyframe.x,
-                    keyframe.y,
-                    keyframe.z,
-                    keyframe.yaw,
-                    keyframe.pitch
-                )
-            } else {
-                val prev: Keyframe = keyframes[index - 1]
-
-                (0..<keyframe.duration).forEach {
-                    frames.add(
-                        Frame(
-                            prev.x + (it.toFloat() / (keyframe.duration - 1)) * (keyframe.x - prev.x),
-                            prev.y + (it.toFloat() / (keyframe.duration - 1)) * (keyframe.y - prev.y),
-                            prev.z + (it.toFloat() / (keyframe.duration - 1)) * (keyframe.z - prev.z),
-                            interpolateAngle(prev.yaw, keyframe.yaw, keyframe.duration)[it],
-                            prev.pitch + (it.toFloat() / (keyframe.duration - 1)) * (keyframe.pitch - prev.pitch)
-                        )
-                    )
-                }
-            }
-        }
-    }
-
-    fun interpolateAngle(start: Float, end: Float, steps: Int): List<Float> {
-        val delta = end - start
-        return if (delta > 180) {
-            List(steps) { (start + it * (delta - 360) / (steps - 1)).let { if (it < -180) it + 360 else it } }
-        } else if (delta < -180) {
-            List(steps) { (start + it * (delta + 360) / (steps - 1)).let { if (it > 180) it - 360 else it } }
-        } else {
-            List(steps) { start + it * delta / (steps - 1) }
         }
     }
 
