@@ -17,7 +17,6 @@ import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.util.math.Vec3d
 import org.joml.Vector3d
 import org.joml.Vector3f
-import ua.mei.cinefabric.cast.CinefabricPlayer
 import ua.mei.cinefabric.scene.Cutscene
 import ua.mei.cinefabric.util.copy
 import java.util.*
@@ -46,7 +45,8 @@ class EditorGui(player: ServerPlayerEntity, val cutscene: Cutscene) : HotbarGui(
                         player.z,
                         player.yaw,
                         player.pitch,
-                        10
+                        10,
+                        Cutscene.Interpolation.NONE
                     )
 
                     render()
@@ -62,7 +62,7 @@ class EditorGui(player: ServerPlayerEntity, val cutscene: Cutscene) : HotbarGui(
                         player.networkHandler.sendPacket(EntitiesDestroyS2CPacket(IntArrayList.wrap(activeIds.toIntArray())))
                         activeIds.clear()
 
-                        (player as CinefabricPlayer).playScene(cutscene) {
+                        cutscene.play(player) {
                             render()
                             open()
                         }
