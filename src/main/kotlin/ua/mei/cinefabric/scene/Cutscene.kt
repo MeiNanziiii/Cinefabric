@@ -56,29 +56,25 @@ class Cutscene {
     fun render(): List<Frame> {
         return keyframes.flatMapIndexed { index, keyframe ->
             val duration: Int = (keyframe.duration * (frameRate / 20f)).toInt()
-
-            if (index == 0 || duration <= 1) {
-                listOf(
-                    Frame(keyframe.x, keyframe.y, keyframe.z, keyframe.yaw, keyframe.pitch)
-                )
-            } else {
-                val prev: Keyframe = keyframes[index - 1]
-
-                var deltaYaw: Float = keyframe.yaw - prev.yaw
-                if (deltaYaw > 180) deltaYaw -= 360
-                if (deltaYaw < -180) deltaYaw += 360
-
-                List(duration) { step ->
-                    val factor: Float = keyframe.interpolation.func(step * (1f / (duration - 1)))
-
-                    Frame(
-                        prev.x + factor * (keyframe.x - prev.x),
-                        prev.y + factor * (keyframe.y - prev.y),
-                        prev.z + factor * (keyframe.z - prev.z),
-                        prev.yaw + factor * deltaYaw,
-                        prev.pitch + factor * (keyframe.pitch - prev.pitch)
-                    )
+            val next: Keyframe = keyframes.getOrNull(index + 1) ?: keyframe
+            val deltaYaw: Float = (next.yaw - keyframe.yaw).let {
+                when {
+                    it > 180 -> it - 360
+                    it < -180 -> it + 360
+                    else -> it
                 }
+            }
+
+            List(duration) { step ->
+                val factor: Float = keyframe.interpolation.func(step / (duration - 1f))
+
+                Frame(
+                    x = keyframe.x + factor * (next.x - keyframe.x),
+                    y = keyframe.y + factor * (next.y - keyframe.y),
+                    z = keyframe.z + factor * (next.z - keyframe.z),
+                    yaw = keyframe.yaw + factor * deltaYaw,
+                    pitch = keyframe.pitch + factor * (next.pitch - keyframe.pitch)
+                )
             }
         }
     }

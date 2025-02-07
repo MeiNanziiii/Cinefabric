@@ -6,4 +6,6 @@ accessible field net/minecraft/entity/decoration/DisplayEntity BRIGHTNESS Lnet/m
 
 accessible field net/minecraft/entity/decoration/DisplayEntity TRANSLATION Lnet/minecraft/entity/data/TrackedData;
 
+accessible field net/minecraft/entity/decoration/DisplayEntity$ItemDisplayEntity ITEM Lnet/minecraft/entity/data/TrackedData;
+
 accessible field net/minecraft/entity/decoration/DisplayEntity$BlockDisplayEntity BLOCK_STATE Lnet/minecraft/entity/data/TrackedData;

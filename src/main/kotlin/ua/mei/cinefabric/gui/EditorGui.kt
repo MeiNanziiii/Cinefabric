@@ -7,6 +7,7 @@ import net.minecraft.block.BlockState
 import net.minecraft.block.Blocks
 import net.minecraft.entity.EntityType
 import net.minecraft.entity.data.DataTracker
+import net.minecraft.entity.decoration.Brightness
 import net.minecraft.entity.decoration.DisplayEntity
 import net.minecraft.item.Items
 import net.minecraft.network.packet.s2c.play.BundleS2CPacket
@@ -46,7 +47,7 @@ class EditorGui(player: ServerPlayerEntity, val cutscene: Cutscene) : HotbarGui(
                         player.yaw,
                         player.pitch,
                         10,
-                        Cutscene.Interpolation.NONE
+                        Cutscene.Interpolation.LINEAR
                     )
 
                     render()
@@ -108,6 +109,11 @@ class EditorGui(player: ServerPlayerEntity, val cutscene: Cutscene) : HotbarGui(
                                     DisplayEntity.TRANSLATION.id,
                                     DisplayEntity.TRANSLATION.dataType,
                                     Vector3f(-0.5f)
+                                ),
+                                DataTracker.SerializedEntry<Int>(
+                                    DisplayEntity.BRIGHTNESS.id,
+                                    DisplayEntity.BRIGHTNESS.dataType,
+                                    Brightness.FULL.pack()
                                 )
                             )
                         )
@@ -162,12 +168,17 @@ class EditorGui(player: ServerPlayerEntity, val cutscene: Cutscene) : HotbarGui(
                                     DataTracker.SerializedEntry<Vector3f>(
                                         DisplayEntity.SCALE.id,
                                         DisplayEntity.SCALE.dataType,
-                                        Vector3f(0.05f, 0.05f, length)
+                                        Vector3f(0.0001f, 0.03f, length)
                                     ),
                                     DataTracker.SerializedEntry<Vector3f>(
                                         DisplayEntity.TRANSLATION.id,
                                         DisplayEntity.TRANSLATION.dataType,
-                                        Vector3f(-0.025f, -0.025f, length / -2)
+                                        Vector3f(-0.00005f, -0.015f, length / -2)
+                                    ),
+                                    DataTracker.SerializedEntry<Int>(
+                                        DisplayEntity.BRIGHTNESS.id,
+                                        DisplayEntity.BRIGHTNESS.dataType,
+                                        Brightness.FULL.pack()
                                     )
                                 )
                             )
