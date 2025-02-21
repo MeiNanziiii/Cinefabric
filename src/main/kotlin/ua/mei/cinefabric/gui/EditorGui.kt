@@ -8,6 +8,7 @@ import net.minecraft.entity.decoration.DisplayEntity
 import net.minecraft.item.Items
 import net.minecraft.network.packet.s2c.play.BundleS2CPacket
 import net.minecraft.network.packet.s2c.play.EntitiesDestroyS2CPacket
+import net.minecraft.network.packet.s2c.play.EntityTrackerUpdateS2CPacket
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.text.Text
 import org.joml.Vector3d
@@ -61,7 +62,7 @@ class EditorGui(player: ServerPlayerEntity, val cutscene: Cutscene) : HotbarGui(
                         close()
 
                         cutscene.play(player) {
-                            displays.values.forEach { it.spawn() }
+                            displays.values.forEach { it.respawn() }
                             open()
                         }
                     }
@@ -112,6 +113,22 @@ class EditorGui(player: ServerPlayerEntity, val cutscene: Cutscene) : HotbarGui(
             )
         }
 
+        fun respawn() {
+            player.networkHandler.sendPacket(
+                BundleS2CPacket(
+                    buildList {
+                        add(camera.createSpawnPacket())
+                        add(track.createSpawnPacket())
+                        add(label.createSpawnPacket())
+
+                        add(EntityTrackerUpdateS2CPacket(camera.entityId, camera.dataTracker.entries.values.map { it.toSerialized() }))
+                        add(EntityTrackerUpdateS2CPacket(track.entityId, track.dataTracker.entries.values.map { it.toSerialized() }))
+                        add(EntityTrackerUpdateS2CPacket(label.entityId, label.dataTracker.entries.values.map { it.toSerialized() }))
+                    }
+                )
+            )
+        }
+
         fun updateCamera() {
             camera.pos.set(keyframe.x, keyframe.y, keyframe.z)
             camera.rotation.apply {
@@ -151,7 +168,7 @@ class EditorGui(player: ServerPlayerEntity, val cutscene: Cutscene) : HotbarGui(
                         camera.createSyncPackets(true).forEach(::add)
                         track.createSyncPackets(true).forEach(::add)
                         label.createSyncPackets(true).forEach(::add)
-                    }
+                    }.takeIf { !it.isEmpty() } ?: return
                 )
             )
         }
